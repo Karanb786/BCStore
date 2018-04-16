@@ -1,5 +1,6 @@
 # BCStore
 A blockchain-based personal files storage
+![BCStore](https://github.com/nnguyen168/BCStore/blob/master/BCS-logo.png)
 
 ## 1. Description
 As an alternative to Google Drive, Dropbox, etc. blockchain-based data storage platforms might become the future of database system due to its advantage in terms of data privacy, decentralization, and almost impossible chance of fraud attempt. 
