@@ -2,106 +2,137 @@ package com.example.trungel.bcstore;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.trungel.bcstore.helper.InputValidation;
+import com.example.trungel.bcstore.sql.DatabaseHelper;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity  implements View.OnClickListener{
 
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.btn_login) Button _loginButton;
-    @InjectView(R.id.link_signup) TextView _signupLink;
+    private final AppCompatActivity activity = LoginActivity.this;
+
+    private NestedScrollView nestedScrollView;
+
+    private TextInputLayout textInputLayoutEmail;
+    private TextInputLayout textInputLayoutPassword;
+
+    private TextInputEditText textInputEditTextEmail;
+    private TextInputEditText textInputEditTextPassword;
+
+    private AppCompatButton appCompatButtonLogin;
+
+    private AppCompatTextView textViewLinkRegister;
+
+    private InputValidation inputValidation;
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ButterKnife.inject(this);
+        getSupportActionBar().hide();
 
-        _loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login();
-            }
-        });
-
-        _signupLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Start the sign up activity
-                Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
-                startActivity(intent);
-            }
-        });
+        initViews();
+        initListeners();
+        initObjects();
     }
 
-    public void login(){
-        if (!validate()){
-            onLoginFailed();
+    private void initViews(){
+
+        nestedScrollView = (NestedScrollView) findViewById(R.id.nestedScrollView);
+
+        textInputLayoutEmail = (TextInputLayout) findViewById(R.id.textInputLayoutEmail);
+        textInputLayoutPassword = (TextInputLayout) findViewById(R.id.textInputLayoutPassword);
+
+        textInputEditTextEmail = (TextInputEditText) findViewById(R.id.textInputEditTextEmail);
+        textInputEditTextPassword = (TextInputEditText) findViewById(R.id.textInputEditTextPassword);
+
+        appCompatButtonLogin = (AppCompatButton) findViewById(R.id.appCompatButtonLogin);
+
+        textViewLinkRegister = (AppCompatTextView) findViewById(R.id.textViewLinkRegister);
+
+    }
+
+    private void initListeners(){
+        appCompatButtonLogin.setOnClickListener(this);
+        textViewLinkRegister.setOnClickListener(this);
+    }
+
+    private void initObjects(){
+        databaseHelper = new DatabaseHelper(activity);
+        inputValidation = new InputValidation(activity);
+    }
+
+    @Override
+    public void onClick(View v){
+        switch (v.getId()){
+            case R.id.appCompatButtonLogin:
+                verifyFromSQLite();
+                break;
+            case R.id.textViewLinkRegister:
+                Intent intentRegister = new Intent(getApplicationContext(), SignupActivity.class);
+                startActivity(intentRegister);
+                break;
+        }
+    }
+
+    private void verifyFromSQLite(){
+        if (!inputValidation.isInputEditTextFilled(textInputEditTextEmail, textInputLayoutEmail, getString(R.string.error_message_email))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextEmail(textInputEditTextEmail, textInputLayoutEmail, getString(R.string.error_message_email))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextFilled(textInputEditTextPassword, textInputLayoutPassword, getString(R.string.error_message_password))){
             return;
         }
 
-        _loginButton.setEnabled(false);
+        if (databaseHelper.checkUser(textInputEditTextEmail.getText().toString().trim(), textInputEditTextPassword.getText().toString().trim())){
+            Intent accountsIntent = new Intent(activity, UserActivity.class);
+            accountsIntent.putExtra("EMAIL", textInputEditTextEmail.getText().toString().trim());
+            emptyInputEditText();
+            final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this, R.style.Theme_AppCompat_DayNight_Dialog);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Authenticating...");
+            progressDialog.show();
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                        }
+                    }, 3000);
 
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this, R.style.Theme_AppCompat_DayNight_Dialog);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
-        progressDialog.show();
-
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        // TODO: implement authentication
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
-    }
-
-    public void onLoginSuccess(){
-        _loginButton.setEnabled(true);
-        finish();
-    }
-
-    public void onLoginFailed(){
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
-        _loginButton.setEnabled(true);
-    }
-
-    public boolean validate(){
-        boolean valid = true;
-
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("Enter a valid email address");
-            valid = false;
+            startActivity(accountsIntent);
         } else {
-            _emailText.setError(null);
+            Snackbar.make(nestedScrollView, getString(R.string.error_valid_email_password), Snackbar.LENGTH_LONG).show();
         }
-
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
-            _passwordText.setError(null);
-        }
-        return valid;
     }
+
+    private void emptyInputEditText(){
+        textInputEditTextEmail.setText(null);
+        textInputEditTextPassword.setText(null);
+    }
+
+    @Override
+    public void onBackPressed(){
+        // disable going back to the MainActivity
+        moveTaskToBack(true);
+    }
+
 }

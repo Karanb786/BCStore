@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:background="#96DFFF"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nestedScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/mainBackground"
+    android:paddingTop="20dp"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="20dp"
+    tools:context=".LoginActivity"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <android.support.v7.widget.LinearLayoutCompat
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="56dp"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp">
+        android:layout_height="match_parent">
 
-        <ImageView android:src="@drawable/logo"
+        <android.support.v7.widget.AppCompatImageView
+            android:src="@drawable/logo"
             android:layout_width="wrap_content"
             android:layout_height="200dp"
             android:layout_marginBottom="24dp"
@@ -21,53 +26,62 @@
 
         <!-- Email Label -->
         <android.support.design.widget.TextInputLayout
+            android:id="@+id/textInputLayoutEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText android:id="@+id/input_email"
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/textInputEditTextEmail"
+                android:maxLines="1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
-                android:textColor="#005792"
-                android:hint="Email" />
+                android:textColor="@color/textColor"
+                android:hint="@string/hint_email" />
         </android.support.design.widget.TextInputLayout>
 
         <!-- Password Label -->
         <android.support.design.widget.TextInputLayout
+            android:id="@+id/textInputLayoutPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText android:id="@+id/input_password"
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/textInputEditTextPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:textColor="#005792"
-                android:hint="Password"/>
+                android:maxLines="1"
+                android:textColor="@color/textColor"
+                android:hint="@string/hint_password"/>
         </android.support.design.widget.TextInputLayout>
 
         <android.support.v7.widget.AppCompatButton
-            android:id="@+id/btn_login"
+            android:id="@+id/appCompatButtonLogin"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="24dp"
             android:padding="12dp"
-            android:background="#D9FAFF"
-            android:textColor="#005792"
-            android:text="Login">
+            android:background="@color/secondBackground"
+            android:textColor="@color/textColor"
+            android:text="@string/text_login">
         </android.support.v7.widget.AppCompatButton>
 
-        <TextView android:id="@+id/link_signup"
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/textViewLinkRegister"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:text="No account yet? Create one"
-            android:textColor="#005792"
             android:gravity="center"
-            android:textSize="16dip"/>
+            android:text="@string/text_not_member"
+            android:textColor="@color/textColor"
+            android:textSize="16dip" />
 
-    </LinearLayout>
+    </android.support.v7.widget.LinearLayoutCompat>
 
-</ScrollView>
+</android.support.v4.widget.NestedScrollView>

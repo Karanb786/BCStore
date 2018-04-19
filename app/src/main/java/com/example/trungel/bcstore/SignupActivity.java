@@ -1,122 +1,149 @@
 package com.example.trungel.bcstore;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
+import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Patterns;
+import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
+import com.example.trungel.bcstore.helper.InputValidation;
+import com.example.trungel.bcstore.model.User;
+import com.example.trungel.bcstore.sql.DatabaseHelper;
 
-public class SignupActivity extends AppCompatActivity {
+public class SignupActivity extends AppCompatActivity implements View.OnClickListener {
 
-    @InjectView(R.id.input_name) EditText _nameText;
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.btn_signup) Button _signupButton;
-    @InjectView(R.id.link_login) TextView _loginLink;
+    private final AppCompatActivity activity = SignupActivity.this;
+
+    private NestedScrollView nestedScrollView;
+
+    private TextInputLayout textInputLayoutName;
+    private TextInputLayout textInputLayoutEmail;
+    private TextInputLayout textInputLayoutPassword;
+    private TextInputLayout textInputLayoutConfirmPassword;
+
+    private TextInputEditText textInputEditTextName;
+    private TextInputEditText textInputEditTextEmail;
+    private TextInputEditText textInputEditTextPassword;
+    private TextInputEditText textInputEditTextConfirmPassword;
+
+    private AppCompatButton appCompatButtonRegister;
+    private AppCompatTextView appCompatTextViewLoginLink;
+
+    private InputValidation inputValidation;
+    private DatabaseHelper databaseHelper;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-        ButterKnife.inject(this);
+        getSupportActionBar().hide();
 
-        _signupButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signup();
-            }
-        });
-
-        _loginLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // start the login activity
-                finish();
-            }
-        });
+        initViews();
+        initListeners();
+        initObjects();
     }
 
-    public void signup(){
-        if (!validate()) {
-            onSignupFailed();
+    private void initViews(){
+        nestedScrollView = (NestedScrollView) findViewById(R.id.nestedScrollView);
+
+        textInputLayoutName = (TextInputLayout) findViewById(R.id.textInputLayoutName);
+        textInputLayoutEmail = (TextInputLayout) findViewById(R.id.textInputLayoutEmail);
+        textInputLayoutPassword = (TextInputLayout) findViewById(R.id.textInputLayoutPassword);
+        textInputLayoutConfirmPassword = (TextInputLayout) findViewById(R.id.textInputLayoutConfirmPassword);
+
+        textInputEditTextName = (TextInputEditText) findViewById(R.id.textInputEditTextName);
+        textInputEditTextEmail = (TextInputEditText) findViewById(R.id.textInputEditTextEmail);
+        textInputEditTextPassword = (TextInputEditText) findViewById(R.id.textInputEditTextPassword);
+        textInputEditTextConfirmPassword = (TextInputEditText) findViewById(R.id.textInputEditTextConfirmPassword);
+
+        appCompatButtonRegister = (AppCompatButton) findViewById(R.id.appCompatButtonRegister);
+
+        appCompatTextViewLoginLink = (AppCompatTextView) findViewById(R.id.appCompatTextViewLoginLink);
+    }
+
+    private void initListeners(){
+        appCompatButtonRegister.setOnClickListener(this);
+        appCompatTextViewLoginLink.setOnClickListener(this);
+    }
+
+    private void initObjects(){
+        inputValidation = new InputValidation(activity);
+        databaseHelper = new DatabaseHelper(activity);
+        user = new User();
+    }
+
+    @Override
+    public void onClick(View v){
+        switch (v.getId()){
+            case R.id.appCompatButtonRegister:
+                postDataToSQLite();
+                break;
+            case R.id.appCompatTextViewLoginLink:
+                finish();
+                break;
+        }
+    }
+
+    private void postDataToSQLite(){
+        if (!inputValidation.isInputEditTextFilled(textInputEditTextName, textInputLayoutName, getString(R.string.error_message_name))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextFilled(textInputEditTextEmail, textInputLayoutEmail, getString(R.string.error_message_email))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextEmail(textInputEditTextEmail, textInputLayoutEmail, getString(R.string.error_message_email))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextFilled(textInputEditTextPassword, textInputLayoutPassword, getString(R.string.error_message_password))){
+            return;
+        }
+        if (!inputValidation.isInputEditTextMatches(textInputEditTextPassword, textInputEditTextConfirmPassword, textInputLayoutConfirmPassword, getString(R.string.error_password_match))){
             return;
         }
 
-        _signupButton.setEnabled(false);
+        if (!databaseHelper.checkUser(textInputEditTextEmail.getText().toString().trim())){
 
-        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this, R.style.Theme_AppCompat_DayNight_Dialog);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Creating account...");
-        progressDialog.show();
+            user.setName(textInputEditTextName.getText().toString().trim());
+            user.setEmail(textInputEditTextEmail.getText().toString().trim());
+            user.setPassword(textInputEditTextPassword.getText().toString().trim());
+            String publickey = "toto"; // generate public key here
+            user.setPublickey(publickey);
 
-        String name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+            databaseHelper.addUser(user);
 
-        // TODO: implement signup logic
+            final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this, R.style.Theme_AppCompat_DayNight_Dialog);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setMessage("Creating account...");
+            progressDialog.show();
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                        }
+                    }, 3000);
 
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
-    }
-
-    public void onSignupSuccess(){
-        _signupButton.setEnabled(true);
-        setResult(RESULT_OK, null);
-        finish();
-    }
-
-    public void onSignupFailed(){
-        Toast.makeText(getBaseContext(), "Signup failed", Toast.LENGTH_LONG).show();
-
-        _signupButton.setEnabled(true);
-    }
-
-    public boolean validate(){
-        boolean valid = true;
-
-        String name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        if (name.isEmpty() || name.length() < 3){
-            _nameText.setError("At least 3 characters");
-            valid = false;
+            Snackbar.make(nestedScrollView, getString(R.string.success_message), Snackbar.LENGTH_LONG).show();
+            emptyInputEditText();
         } else {
-            _nameText.setError(null);
+            Snackbar.make(nestedScrollView, getString(R.string.error_email_exists), Snackbar.LENGTH_LONG).show();
         }
 
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("Enter a valid email address");
-            valid = false;
-        } else {
-            _nameText.setError(null);
-        }
 
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("Between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
-            _passwordText.setError(null);
-        }
-
-        return valid;
     }
+
+    private void emptyInputEditText() {
+        textInputEditTextName.setText(null);
+        textInputEditTextEmail.setText(null);
+        textInputEditTextPassword.setText(null);
+        textInputEditTextConfirmPassword.setText(null);
+    }
+
 }
